@@ -1,17 +1,30 @@
 import '../../src/styles.css';
-import './api-pixabay';
-import oneList from '../templates/one-card.hbs';
-import { getListPhotos } from './api-pixabay';
+import './apiService';
+import './scrol';
+import { getListPhotos } from './apiService';
+import { renderListPhotos } from './render-photo-card';
+import variables from './variables';
 
-const input = document.querySelector('.input');
-const SearchBtn = document.querySelector('.search-btn');
-const galerry = document.querySelector('.gallery');
+let pageNumber = 0;
 
-function render({ hits }) {
-  const oneCard = oneList(hits);
-  galerry.innerHTML = oneCard;
-}
-const addRender = () => {
-  getListPhotos(input.value).then(render);
+const observerHandelbars = entries => {
+  if (entries[0].isIntersecting) {
+    addRender(1);
+  }
 };
-SearchBtn.addEventListener('click', addRender);
+
+const observer = new IntersectionObserver(observerHandelbars);
+observer.observe(variables.obServerList);
+
+const addRender = async event => {
+  if (!event.target) {
+    pageNumber += 1;
+  } else {
+    pageNumber = 1;
+    variables.galerry.innerHTML = '';
+  }
+  const { hits } = await getListPhotos(variables.input.value, pageNumber);
+  renderListPhotos(hits);
+};
+
+variables.SearchBtn.addEventListener('click', addRender);
